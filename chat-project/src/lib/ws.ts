@@ -27,51 +27,107 @@ function safeParseJson(data: string): unknown | null {
 export async function createAuthedWS(handlers: WsHandlers) {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
-  if (!token) throw new Error("로그인이 필요합니다.");
+
+  if (!token) {
+    throw new Error("로그인이 필요합니다.");
+  }
 
   const base = import.meta.env.VITE_WS_URL || "ws://localhost:8080";
-  const ws = new WebSocket(`${base}?token=${encodeURIComponent(token)}`);
+  const url = `${base}?token=${encodeURIComponent(token)}`;
 
-  // ✅ 디버깅 로그 (배포에서 원인 잡을 때만 잠깐)
-  ws.onopen = () => console.log("[WS] open", ws.url);
-  ws.onerror = (e) => console.log("[WS] error", e);
-  ws.onclose = (e) => console.log("[WS] close", e.code, e.reason);
+  // ✅ 여기부터는 "무조건 찍혀야" 정상
+  console.log("[WS] creating...", url);
 
-  // OPEN까지 기다려서 return (send 안정)
+  const ws = new WebSocket(url);
+
+  // ✅ 덮어써져도 살아있는 디버깅 로그
+  ws.addEventListener("open", () => {
+    console.log("[WS] open", ws.url);
+  });
+
+  ws.addEventListener("error", (e) => {
+    console.log("[WS] error", e);
+  });
+
+  ws.addEventListener("close", (e) => {
+    console.log("[WS] close", e.code, e.reason);
+  });
+
+  // ✅ OPEN까지 기다려서 return (send 안정)
   await new Promise<void>((resolve, reject) => {
-    ws.onopen = () => resolve();
-    ws.onerror = () => reject(new Error("WebSocket 연결 실패"));
+    const onOpen = () => {
+      cleanup();
+      resolve();
+    };
+
+    const onError = () => {
+      cleanup();
+      reject(new Error("WebSocket 연결 실패"));
+    };
+
+    const cleanup = () => {
+      ws.removeEventListener("open", onOpen);
+      ws.removeEventListener("error", onError);
+    };
+
+    ws.addEventListener("open", onOpen);
+    ws.addEventListener("error", onError);
   });
 
   ws.onmessage = (e) => {
-    const parsed = safeParseJson(e.data);
+    // ws 메시지는 string이 아닌 경우도 있으니 방어
+    const raw = typeof e.data === "string" ? e.data : String(e.data);
+    const parsed = safeParseJson(raw);
     if (!parsed || typeof parsed !== "object") return;
 
     const msg = parsed as WsServerEnvelope | WsServerLegacy;
 
     // payload 형태 우선, 아니면 legacy 필드에서 최대한 꺼내기
     if (msg.type === "ready") {
-      const p = "payload" in msg && msg.payload ? msg.payload : (msg as any);
-      if (p?.userId && p?.coupleId) handlers.onReady?.({ userId: p.userId, coupleId: p.coupleId });
+      const p =
+        "payload" in msg && msg.payload
+          ? msg.payload
+          : (msg as unknown as { userId?: string; coupleId?: string });
+
+      if (p?.userId && p?.coupleId) {
+        handlers.onReady?.({ userId: p.userId, coupleId: p.coupleId });
+      }
       return;
     }
 
     if (msg.type === "presence") {
-      const p = "payload" in msg && msg.payload ? msg.payload : (msg as any);
-      if (p?.userId && typeof p?.online === "boolean")
+      const p =
+        "payload" in msg && msg.payload
+          ? msg.payload
+          : (msg as unknown as { userId?: string; online?: boolean });
+
+      if (p?.userId && typeof p?.online === "boolean") {
         handlers.onPresence?.({ userId: p.userId, online: p.online });
+      }
       return;
     }
 
     if (msg.type === "chat") {
-      const payloadMsg = "payload" in msg && msg.payload ? msg.payload : (msg as any).message;
-      if (payloadMsg?.id) handlers.onChat?.(payloadMsg as Msg);
+      const payloadMsg =
+        "payload" in msg && msg.payload
+          ? msg.payload
+          : (msg as unknown as { message?: unknown }).message;
+
+      if (payloadMsg && typeof payloadMsg === "object" && "id" in (payloadMsg as any)) {
+        handlers.onChat?.(payloadMsg as Msg);
+      }
       return;
     }
 
     if (msg.type === "error") {
-      const p = "payload" in msg && msg.payload ? msg.payload : (msg as any);
-      if (typeof p?.message === "string") handlers.onError?.({ message: p.message });
+      const p =
+        "payload" in msg && msg.payload
+          ? msg.payload
+          : (msg as unknown as { message?: unknown });
+
+      if (typeof p?.message === "string") {
+        handlers.onError?.({ message: p.message });
+      }
       return;
     }
   };
