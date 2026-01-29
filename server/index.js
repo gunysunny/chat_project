@@ -73,7 +73,10 @@ async function saveMessage({ coupleId, senderId, content }) {
   return data;
 }
 
-const server = http.createServer();
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("ok");
+});
 const wss = new WebSocketServer({ server });
 
 wss.on("connection", async (ws, req) => {
@@ -140,6 +143,6 @@ wss.on("connection", async (ws, req) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`✅ WS server running on ws://localhost:${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ WS server running on port ${PORT}`);
 });
