@@ -138,12 +138,18 @@ export async function createAuthedWS(handlers: WsHandlers) {
 }
 
 export function sendChat(ws: WebSocket, content: string) {
-  if (ws.readyState !== WebSocket.OPEN) return;
+  console.log("[WS] sendChat called", { readyState: ws.readyState, content });
+
+  if (ws.readyState !== WebSocket.OPEN) {
+    console.log("[WS] NOT OPEN. abort send");
+    return;
+  }
 
   const msg: WsClientEnvelope = {
     type: "chat",
     payload: { content },
   };
 
+  console.log("[WS] sending:", msg);
   ws.send(JSON.stringify(msg));
 }

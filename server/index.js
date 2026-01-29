@@ -109,12 +109,15 @@ wss.on("connection", async (ws, req) => {
 
   // 4) 메시지 처리
   ws.on("message", async (raw) => {
+    console.log("[WS] recv raw:", raw.toString()); // ✅ 이거
+
     let msg;
     try {
       msg = JSON.parse(raw.toString());
     } catch {
       return;
     }
+    console.log("[WS] recv parsed:", msg); // ✅ 이거
 
     if (msg.type === "chat") {
       // ✅ 프론트 payload 방식 + 기존 content 방식 둘 다 지원
