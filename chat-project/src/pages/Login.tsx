@@ -1,88 +1,81 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { Heart, Mail, Lock } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const signUp = async () => {
-    const cleanEmail = email.trim();
-    const cleanPw = pw.trim();
-
-    if (!cleanEmail.includes("@") || !cleanEmail.includes(".")) {
-      alert("이메일 형식이 올바르지 않습니다. 예: test@gmail.com");
-      return;
-    }
-
-    if (cleanPw.length < 6) {
-      alert("비밀번호는 최소 6자 이상이어야 합니다.");
-      return;
-    }
-
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: cleanEmail,
-      password: cleanPw,
-    });
-    setLoading(false);
-
-    if (error) return alert(error.message);
-    alert("회원가입 완료! 이제 로그인 해봐.");
-  };
-
-  const signIn = async () => {
+  const onLogin = async () => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password: pw,
+      email: email.trim(),
+      password: pw.trim(),
     });
     setLoading(false);
-
-    if (error) return alert(error.message);
-    alert("로그인 성공!");
+    if (error) alert(error.message);
   };
 
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-sm space-y-3 border bg-white p-5 rounded-2xl shadow-sm">
-        <h1 className="text-xl font-bold">로그인 / 회원가입</h1>
+    <div className="min-h-screen bg-neutral-950 text-white">
+      {/* 배경 */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url(/bg-login.jpg)" }}
+      />
+      <div className="absolute inset-0 bg-black/60" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/70 to-black" />
 
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+      <div className="relative mx-auto flex min-h-screen max-w-5xl items-center justify-center px-4">
+        <div className="w-full max-w-sm rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur">
+          <div className="flex items-center gap-2">
+            <Heart className="h-5 w-5 text-pink-400" />
+            <span className="font-semibold">Couple</span>
+          </div>
 
-        <input
-          className="w-full border p-2 rounded"
-          placeholder="password"
-          type="password"
-          value={pw}
-          onChange={(e) => setPw(e.target.value)}
-        />
+          <h1 className="mt-4 text-xl font-semibold tracking-tight">로그인</h1>
+          <p className="mt-1 text-sm text-white/70">우리만의 공간으로 들어가기</p>
 
-        <div className="flex gap-2">
-          <button
-            className="flex-1 border px-3 py-2 rounded"
-            onClick={signUp}
-            disabled={loading}
-          >
-            회원가입
-          </button>
+          <div className="mt-5 space-y-3">
+            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-3 py-2">
+              <Mail className="h-4 w-4 text-white/60" />
+              <input
+                className="w-full bg-transparent text-sm outline-none placeholder:text-white/40"
+                placeholder="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
 
-          <button
-            className="flex-1 border px-3 py-2 rounded"
-            onClick={signIn}
-            disabled={loading}
-          >
-            로그인
-          </button>
+            <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-3 py-2">
+              <Lock className="h-4 w-4 text-white/60" />
+              <input
+                className="w-full bg-transparent text-sm outline-none placeholder:text-white/40"
+                placeholder="password"
+                type="password"
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+              />
+            </div>
+
+            <button
+              className="w-full rounded-2xl bg-white py-2 text-sm font-semibold text-black hover:bg-white/90 disabled:opacity-60"
+              onClick={onLogin}
+              disabled={loading}
+            >
+              {loading ? "처리중..." : "로그인"}
+            </button>
+
+            <div className="text-sm text-white/70">
+              계정이 없어?{" "}
+              <Link className="underline font-medium text-white" to="/signup">
+                회원가입
+              </Link>
+            </div>
+          </div>
         </div>
-
-        {loading && <p className="text-sm text-gray-500">처리중...</p>}
       </div>
     </div>
   );
