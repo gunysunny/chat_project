@@ -80,6 +80,8 @@ export async function createAuthedWS(handlers: WsHandlers) {
     const parsed = safeParseJson(raw);
     if (!parsed || typeof parsed !== "object") return;
 
+     console.log("[WS] message raw:", raw); // ✅ 여기
+
     const msg = parsed as WsServerEnvelope | WsServerLegacy;
 
     // payload 형태 우선, 아니면 legacy 필드에서 최대한 꺼내기
