@@ -7,7 +7,7 @@ const PORT = Number(process.env.PORT || 8080);
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY,
   { auth: { persistSession: false } }
 );
 
@@ -140,6 +140,10 @@ wss.on("connection", async (ws, req) => {
   ws.on("close", () => {
     leaveRoom(ws, coupleId);
     broadcast(coupleId, { type: "presence", userId, online: false });
+  });
+
+  ws.on("close", (code, reason) => {
+    console.log("WS close:", code, reason?.toString());
   });
 });
 
