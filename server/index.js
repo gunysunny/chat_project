@@ -117,7 +117,8 @@ wss.on("connection", async (ws, req) => {
     }
 
     if (msg.type === "chat") {
-      const text = String(msg.content ?? "").trim();
+      // ✅ 프론트 payload 방식 + 기존 content 방식 둘 다 지원
+      const text = String(msg?.payload?.content ?? msg?.content ?? "").trim();
       if (!text) return;
 
       const saved = await saveMessage({
@@ -131,7 +132,6 @@ wss.on("connection", async (ws, req) => {
         return;
       }
 
-      // 커플 룸에 뿌리기
       broadcast(coupleId, { type: "chat", message: saved });
     }
   });
