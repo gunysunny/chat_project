@@ -32,6 +32,11 @@ export async function createAuthedWS(handlers: WsHandlers) {
   const base = import.meta.env.VITE_WS_URL || "ws://localhost:8080";
   const ws = new WebSocket(`${base}?token=${encodeURIComponent(token)}`);
 
+  // ✅ 디버깅 로그 (배포에서 원인 잡을 때만 잠깐)
+  ws.onopen = () => console.log("[WS] open", ws.url);
+  ws.onerror = (e) => console.log("[WS] error", e);
+  ws.onclose = (e) => console.log("[WS] close", e.code, e.reason);
+
   // OPEN까지 기다려서 return (send 안정)
   await new Promise<void>((resolve, reject) => {
     ws.onopen = () => resolve();
