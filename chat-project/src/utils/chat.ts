@@ -1,4 +1,3 @@
-// src/utils/chat.ts
 import type { Msg } from "@/types/message";
 
 export function dateKey(iso: string) {

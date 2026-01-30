@@ -35,12 +35,10 @@ export async function createAuthedWS(handlers: WsHandlers) {
   const base = import.meta.env.VITE_WS_URL || "ws://localhost:8080";
   const url = `${base}?token=${encodeURIComponent(token)}`;
 
-  // ✅ 여기부터는 "무조건 찍혀야" 정상
   console.log("[WS] creating...", url);
 
   const ws = new WebSocket(url);
 
-  // ✅ 덮어써져도 살아있는 디버깅 로그
   ws.addEventListener("open", () => {
     console.log("[WS] open", ws.url);
   });
@@ -53,7 +51,6 @@ export async function createAuthedWS(handlers: WsHandlers) {
     console.log("[WS] close", e.code, e.reason);
   });
 
-  // ✅ OPEN까지 기다려서 return (send 안정)
   await new Promise<void>((resolve, reject) => {
     const onOpen = () => {
       cleanup();
@@ -80,7 +77,7 @@ export async function createAuthedWS(handlers: WsHandlers) {
     const parsed = safeParseJson(raw);
     if (!parsed || typeof parsed !== "object") return;
 
-     console.log("[WS] message raw:", raw); // ✅ 여기
+    console.log("[WS] message raw:", raw); 
 
     const msg = parsed as WsServerEnvelope | WsServerLegacy;
 

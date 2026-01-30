@@ -100,7 +100,7 @@ export function useChatRoom() {
             // 이미 있으면 패스
             if (prev.some((x) => x.id === m.id)) return prev;
 
-            // ✅ 내가 보낸 메시지가 서버에서 돌아온 경우: pending 하나 교체
+            // 내가 보낸 메시지가 서버에서 돌아온 경우: pending 하나 교체
             if (m.sender_id === myIdRef.current) {
               const idx = prev.findIndex(
                 (x) => x.pending && x.sender_id === m.sender_id && isSameText(x.content, m.content)
@@ -119,7 +119,6 @@ export function useChatRoom() {
         onError: (e) => setError(e.message),
       });
 
-      // 여기까지 왔으면 연결 성공
       clearRetryTimer();
       retryRef.current = 0;
 
@@ -130,7 +129,7 @@ export function useChatRoom() {
         setWs(null);
         setReady(false);
         setStatus("closed");
-        // ✅ 자동 재연결
+        // 자동 재연결
         scheduleReconnect();
       };
     } catch (e: unknown) {
@@ -138,7 +137,7 @@ export function useChatRoom() {
       setWs(null);
       setReady(false);
       setStatus("closed");
-      // ✅ 에러 나도 재연결 시도
+      // 에러 나도 재연결 시도
       scheduleReconnect();
     } finally {
       connectingRef.current = false;
@@ -151,7 +150,6 @@ export function useChatRoom() {
       clearRetryTimer();
       ws?.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const reconnect = () => {
@@ -165,7 +163,7 @@ export function useChatRoom() {
     const v = content.trim();
     if (!v || !ws) return;
 
-    // ✅ optimistic: 임시 메시지 먼저 추가
+    // optimistic: 임시 메시지 먼저 추가
     const tempId = `temp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
     const optimistic: Msg = {
       id: tempId,
@@ -177,7 +175,6 @@ export function useChatRoom() {
 
   setMessages((prev) => [...prev, optimistic]);
 
-  // ✅ 실제 전송
   sendChat(ws, v);
 };
 
@@ -191,6 +188,6 @@ export function useChatRoom() {
     status,
     error,
     send,
-    reconnect, // ✅ UI에서 “다시 연결” 버튼용
+    reconnect, 
   };
 }

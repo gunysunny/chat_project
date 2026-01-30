@@ -4,7 +4,7 @@ export type Msg = {
   sender_id: string;
   content: string;
   created_at: string;
-  pending?: boolean; // ✅ optimistic 표시용
+  pending?: boolean; // optimistic 표시용
 };
 
 export type ReadyPayload = {
@@ -31,7 +31,7 @@ export type WsServerEnvelope =
   | { type: "chat"; payload: Msg }
   | { type: "error"; payload: ErrorPayload };
 
-// (호환용) 서버가 payload 없이 보내는 경우를 최소 지원하고 싶으면 아래처럼 union 확장 가능
+
 export type WsServerLegacy =
   | ({ type: "ready" } & Partial<ReadyPayload> & { payload?: ReadyPayload })
   | ({ type: "presence" } & Partial<PresencePayload> & { payload?: PresencePayload })

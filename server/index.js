@@ -14,7 +14,6 @@ const supabase = createClient(
 const COUPLES_TABLE = process.env.COUPLES_TABLE || "couplesTable";
 const MESSAGES_TABLE = process.env.MESSAGES_TABLE || "messages";
 
-// coupleId -> Set<WebSocket>
 const rooms = new Map();
 
 function safeSend(ws, payload) {
@@ -109,7 +108,7 @@ wss.on("connection", async (ws, req) => {
 
   // 4) 메시지 처리
   ws.on("message", async (raw) => {
-    console.log("[WS] recv raw:", raw.toString()); // ✅ 이거
+    console.log("[WS] recv raw:", raw.toString()); 
 
     let msg;
     try {
@@ -117,10 +116,9 @@ wss.on("connection", async (ws, req) => {
     } catch {
       return;
     }
-    console.log("[WS] recv parsed:", msg); // ✅ 이거
+    console.log("[WS] recv parsed:", msg); 
 
     if (msg.type === "chat") {
-      // ✅ 프론트 payload 방식 + 기존 content 방식 둘 다 지원
       const text = String(msg?.payload?.content ?? msg?.content ?? "").trim();
       if (!text) return;
 
@@ -151,5 +149,5 @@ wss.on("connection", async (ws, req) => {
 });
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`✅ WS server running on port ${PORT}`);
+  console.log(`WS server running on port ${PORT}`);
 });
